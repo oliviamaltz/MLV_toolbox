@@ -7,6 +7,8 @@ function [vecLD,img] = traceLineDrawingFromRGB(fileName,method,scoreThreshold, i
 %   method - optional, method specification. 'StructuredEdgeDetection' for
 %   original method, 'SAM' for segment anything. If method is omitted,
 %   defaults to 'StructuredEdgeDetection'
+%   scoreThreshold - optional, used to set a threshold for SAM. Default 
+%   threshold set to 0.5. (Please see SAM documentation for more details).
 %   img - optional, the RGB image. If img is omitted, the image data are
 %         read from filename using imread
 % Output:
