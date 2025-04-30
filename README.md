@@ -22,7 +22,9 @@ We are working on the python version and we have a plan to release the python ve
 * [Matlab](https://www.mathworks.com/products/matlab.html)
 * [Matlab Computer Vision Toolbox ](https://www.mathworks.com/products/computer-vision.html)
 * [Matlab Image Processing Toolbox](https://www.mathworks.com/products/image.html)
-* [Matlab Statistics and Machine Learning Toolbox](https://www.mathworks.com/products/statistics.html) 
+* [Matlab Statistics and Machine Learning Toolbox](https://www.mathworks.com/products/statistics.html)
+* [Matlab Image Processing Toolbox for Segment Anything Model](https://www.mathworks.com/matlabcentral/fileexchange/155864-image-processing-toolbox-model-for-segment-anything-model)
+* [Matlab Deep Learning Toolbox](https://www.mathworks.com/products/deep-learning.html)
 
 ## Usage
 
@@ -34,11 +36,24 @@ The first step to use the MLV toolbox is to add the required folders to the Matl
 setup
 ```
 
-
-
 **Extracting Line Drawings**
 
-The main function for extracting line drawings is "lineDrawingTracing.m". 
+The main function for extracting line drawings is "traceLineDrawingFromRGB.m". 
+
+**Model Options for traceLineDrawingFromRGB.m**
+We now provide two models to compute line drawings:
+
+Segment Anything Model (SAM) (default): Available for all operating systems. The confidence score threshold can be tuned but is set to 0.5 by default.
+```
+traceLineDrawingFromRGB(fileName);                // default usage
+traceLineDrawingFromRGB(fileName, 'SAM', 0.7);    // usage with tuned score threshold
+```
+
+Structured Edge Detection (older version): Available only on the Windows 10 OS. To use this model, specify it explicitly using the following syntax:
+
+```
+traceLineDrawings(file, 'StructuredEdgeDetection');
+```
 
 *_Please note that the line drawing extraction process can take a while to finish, depending on the image size._*
 
@@ -56,7 +71,7 @@ drawLinedrawing(vecLD);
 
 Output:
 
-<img src='images/example_output.png' width=70%> 
+<img src='images/example_output_SAM.png' width=70%> 
 
 Note that the drawLineDrawing takes a LineDrawing (LD) data structure (represented as vecLD in the example above), and draws the outcome with specific line width (3 in the example above) and a chosen color ('b' -> which is for blue in Matlab). 
 
@@ -110,11 +125,11 @@ MAT = computeMAT(imgLD,28);
 [MATcontourImages,MATskeletonImages,skeletalBranches]=computeAllMATproperties(MAT,imgLD);
 figure;
 subplot(1,2,1);
-drawMATproperty(MATskeletonImages.mirror);
+drawMATproperty(cute, "mirror");
 title('Mirror Symmetry','FontSize',24);
 subplot(1,2,2);
-drawMATproperty(MATcontourImages.mirror);
-title('Mirror Symmetry','FontSize',24);
+drawMATproperty(cute, "parallelism");
+title('Parallelism','FontSize',24);
 ```
 
 Output:

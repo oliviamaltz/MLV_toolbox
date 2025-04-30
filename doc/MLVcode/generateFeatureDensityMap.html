@@ -6,7 +6,7 @@
   <meta name="keywords" content="generateFeatureDensityMap">
   <meta name="description" content="FDM = generateFeatureDensityMap(vecLD,property,smoothingSigma,junctionTypes)">
   <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-  <meta name="generator" content="m2html v1.5 &copy; 2003-2005 Guillaume Flandin">
+  <meta name="generator" content="m2html &copy; 2003-2019 Guillaume Flandin">
   <meta name="robots" content="index, follow">
   <link type="text/css" rel="stylesheet" href="../m2html.css">
 </head>
@@ -130,7 +130,7 @@ This function is called by:
 0065     <span class="keyword">case</span> <span class="string">'length'</span>
 0066         <span class="keyword">for</span> c = 1:vecLD.numContours
 0067             thisMap = zeros(vecLD.imsize(2),vecLD.imsize(1),3);
-0068             <span class="keyword">for</span> s = 1:size(vecLD.contours,1)
+0068             <span class="keyword">for</span> s = 1:size(vecLD.contours{c},1)
 0069                 thisMap = insertShape(thisMap,<span class="string">'Line'</span>,vecLD.contours{c}(s,:),<span class="string">'Color'</span>,[1,0,0],<span class="string">'LineWidth'</span>,1,<span class="string">'Opacity'</span>,1,<span class="string">'SmoothEdges'</span>,false);
 0070             <span class="keyword">end</span>
 0071             thisMap = thisMap(:,:,1);
@@ -154,55 +154,65 @@ This function is called by:
 0089         <span class="keyword">end</span>
 0090 
 0091     <span class="keyword">case</span> <span class="string">'junctions'</span>
-0092         <span class="keyword">if</span> nargin &lt; 4
-0093             junctionTypes = {vecLD.junctions.type};
-0094         <span class="keyword">else</span>
-0095             <span class="keyword">if</span> isempty(junctionTypes)
-0096                 junctionTypes = {vecLD.junctions.type};
-0097             <span class="keyword">end</span>
-0098             <span class="keyword">if</span> ischar(junctionTypes)
-0099                 junctionTypes = {junctionTypes};
-0100             <span class="keyword">end</span>
-0101         <span class="keyword">end</span>
-0102 
-0103         <span class="keyword">for</span> j = 1:numel(vecLD.junctions)
-0104             <span class="keyword">if</span> ismember(vecLD.junctions(j).type,junctionTypes)
-0105                 pos = round(vecLD.junctions(j).position);
-0106                 FDM(pos(2),pos(1)) = 1;
-0107             <span class="keyword">end</span>
-0108         <span class="keyword">end</span>
-0109         <span class="keyword">if</span> smoothingSigma &gt; 0
-0110             FDM = imgaussfilt(FDM,smoothingSigma);
-0111         <span class="keyword">end</span>
-0112 
-0113     <span class="keyword">case</span> <span class="string">'mirror'</span>
-0114         <span class="keyword">for</span> p = 1:numel(vecLD.mirror_allScores)
-0115             FDM(vecLD.mirror_allY(p),vecLD.mirror_allX(p)) = vecLD.mirror_allScores(p);
-0116         <span class="keyword">end</span>
-0117         <span class="keyword">if</span> smoothingSigma &gt; 0
-0118             FDM = imgaussfilt(FDM,smoothingSigma);
-0119         <span class="keyword">end</span>
-0120 
-0121     <span class="keyword">case</span> <span class="string">'parallelism'</span>
-0122         <span class="keyword">for</span> p = 1:numel(vecLD.parallelism_allScores)
-0123             FDM(vecLD.parallelism_allY(p),vecLD.parallelism_allX(p)) = vecLD.parallelism_allScores(p);
-0124         <span class="keyword">end</span>
-0125         <span class="keyword">if</span> smoothingSigma &gt; 0
-0126             FDM = imgaussfilt(FDM,smoothingSigma);
-0127         <span class="keyword">end</span>
-0128 
-0129     <span class="keyword">case</span> <span class="string">'separation'</span>
-0130         <span class="keyword">for</span> p = 1:numel(vecLD.separation_allScores)
-0131             FDM(vecLD.separation_allY(p),vecLD.separation_allX(p)) = vecLD.separation_allScores(p);
-0132         <span class="keyword">end</span>
-0133         <span class="keyword">if</span> smoothingSigma &gt; 0
-0134             FDM = imgaussfilt(FDM,smoothingSigma);
-0135         <span class="keyword">end</span>
-0136 
-0137     <span class="keyword">otherwise</span>
-0138         error([<span class="string">'Unknown property string: '</span>,property]);
-0139 <span class="keyword">end</span>
-0140</pre></div>
-<hr><address>Generated on Fri 03-Mar-2023 22:56:46 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" title="Matlab Documentation in HTML">m2html</a></strong> &copy; 2005</address>
+0092         <span class="keyword">if</span> isempty(vecLD.junctions)
+0093             junctionTypes = {};
+0094         <span class="keyword">elseif</span> nargin &lt; 4
+0095             junctionTypes = {vecLD.junctions.type};
+0096         <span class="keyword">else</span>
+0097             <span class="keyword">if</span> isempty(junctionTypes)
+0098                 junctionTypes = {vecLD.junctions.type};
+0099             <span class="keyword">end</span>
+0100             <span class="keyword">if</span> ischar(junctionTypes)
+0101                 junctionTypes = {junctionTypes};
+0102             <span class="keyword">end</span>
+0103         <span class="keyword">end</span>
+0104 
+0105         <span class="keyword">for</span> j = 1:numel(vecLD.junctions)
+0106             <span class="keyword">if</span> ismember(vecLD.junctions(j).type,junctionTypes)
+0107                 pos = round(vecLD.junctions(j).position);
+0108                 
+0109                 <span class="comment">% make sure we're in bounds</span>
+0110                 <span class="keyword">if</span> pos(1) &lt; 1; pos(1) = 1; <span class="keyword">end</span>
+0111                 <span class="keyword">if</span> pos(1) &gt; vecLD.imsize(1); pos(1) = vecLD.imsize(1); <span class="keyword">end</span>
+0112                 <span class="keyword">if</span> pos(2) &lt; 1; pos(2) = 1; <span class="keyword">end</span>
+0113                 <span class="keyword">if</span> pos(2) &gt; vecLD.imsize(2); pos(2) = vecLD.imsize(2); <span class="keyword">end</span>
+0114 
+0115                 <span class="comment">% set the point in the map</span>
+0116                 FDM(pos(2),pos(1)) = 1;
+0117             <span class="keyword">end</span>
+0118         <span class="keyword">end</span>
+0119         <span class="keyword">if</span> smoothingSigma &gt; 0
+0120             FDM = imgaussfilt(FDM,smoothingSigma);
+0121         <span class="keyword">end</span>
+0122 
+0123     <span class="keyword">case</span> <span class="string">'mirror'</span>
+0124         <span class="keyword">for</span> p = 1:numel(vecLD.mirror_allScores)
+0125             FDM(vecLD.mirror_allY(p),vecLD.mirror_allX(p)) = vecLD.mirror_allScores(p);
+0126         <span class="keyword">end</span>
+0127         <span class="keyword">if</span> smoothingSigma &gt; 0
+0128             FDM = imgaussfilt(FDM,smoothingSigma);
+0129         <span class="keyword">end</span>
+0130 
+0131     <span class="keyword">case</span> <span class="string">'parallelism'</span>
+0132         <span class="keyword">for</span> p = 1:numel(vecLD.parallelism_allScores)
+0133             FDM(vecLD.parallelism_allY(p),vecLD.parallelism_allX(p)) = vecLD.parallelism_allScores(p);
+0134         <span class="keyword">end</span>
+0135         <span class="keyword">if</span> smoothingSigma &gt; 0
+0136             FDM = imgaussfilt(FDM,smoothingSigma);
+0137         <span class="keyword">end</span>
+0138 
+0139     <span class="keyword">case</span> <span class="string">'separation'</span>
+0140         <span class="keyword">for</span> p = 1:numel(vecLD.separation_allScores)
+0141             FDM(vecLD.separation_allY(p),vecLD.separation_allX(p)) = vecLD.separation_allScores(p);
+0142         <span class="keyword">end</span>
+0143         <span class="keyword">if</span> smoothingSigma &gt; 0
+0144             FDM = imgaussfilt(FDM,smoothingSigma);
+0145         <span class="keyword">end</span>
+0146 
+0147     <span class="keyword">otherwise</span>
+0148         error([<span class="string">'Unknown property string: '</span>,property]);
+0149 <span class="keyword">end</span>
+0150</pre></div>
+<hr><address>Generated on Wed 30-Apr-2025 06:19:39 by <strong><a href="https://github.com/gllmflndn/m2html">m2html</a></strong> &copy; 2003-2022</address>
 </body>
 </html>

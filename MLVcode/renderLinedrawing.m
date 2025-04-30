@@ -47,7 +47,8 @@ if nargin < 2
     img = [];
 end
 if isempty(img)
-    img = ones([imsize(2),imsize(1),3]);
+    imsize = round(imsize);
+    img = ones([imsize(2), imsize(1), 3]);
 end
 
 % define a vector for scaling the coordinates up or down as needed
